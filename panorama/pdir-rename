@@ -1,0 +1,11 @@
+#!/bin/bash
+
+
+for PDIR in  p[0-9]*; do
+    NEW_PDIR=pano-$(find $PDIR -type f -name '*---*.pto' |
+                        head -1 | awk -F/ '{print $NF}' | sed 's/\.pto$//g')
+    if [ "$NEW_PDIR" != "pano-" ] && [ ! -e $NEW_PDIR ]; then
+        mv -v $PDIR $NEW_PDIR
+    fi
+done
+

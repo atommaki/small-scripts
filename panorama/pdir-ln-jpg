@@ -1,0 +1,11 @@
+#!/bin/bash
+
+for PDIR in pano*---*; do
+    if [ -d "$PDIR" ]; then
+        for JPG in $(cd $PDIR; echo *---*jpg); do
+            echo $PDIR/$JPG
+            ln -s $PDIR/$JPG pano-$JPG
+        done
+    fi
+done
+
