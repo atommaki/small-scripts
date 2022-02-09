@@ -1,0 +1,26 @@
+#!/bin/bash
+
+cd $(dirname $0)
+REPO_BIN_DIR=$PWD/bin
+
+mkdir -p ~/.local/bin
+
+cd ~/.local/bin
+
+for BINFILE in $(cd $REPO_BIN_DIR; ls -1); do
+    NEW_LINK=$REPO_BIN_DIR/$BINFILE
+    if [ -L "$BINFILE" ]; then
+        if [ "$(readlink $BINFILE)" = "$NEW_LINK" ]; then
+            echo "skipping up to date link: $BINFILE"
+            continue
+        else
+            rm "$BINFILE"
+        fi
+    fi
+    if [ -e "$BINFILE" ]; then
+        echo "skipping file which already exists: $BINFILE"
+        continue
+    fi
+    ln -sv $NEW_LINK
+done
+
