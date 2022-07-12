@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+
+# renames all files of a torrent of transmission
+# use the torrent ID as a parameter (`transmission-remote -l` shows the IDs)
+
+from transmission_rpc import Client
+import sys
+import os
+import yaml
+import re
+import time
+
+tr_host = 'localhost'
+tr_port = '9091'
+
+def tr_file_rename(tid, fname, tr_rename_rules):
+    basename = fname.split('/')[-1]
+    new_basename = basename
+    for from_regex, to_str in tr_rename_rules.items():
+        new_basename = re.sub(from_regex, to_str, new_basename)
+    if basename != new_basename:
+        trc.rename_torrent_path(tid, fname, new_basename)
+    return (basename, new_basename)
+
+### main
+
+tr_rename_rules_f = os.path.join(os.path.expanduser('~'), '.config', 'tr-rename.rules.yml')
+
+try:
+    with open(tr_rename_rules_f, 'r') as f:
+        tr_rename_rules = yaml.safe_load(f)
+    if len(tr_rename_rules) == 0:
+        raise ValueError()
+except:
+    print(f"""Your config file ({tr_rename_rules_f}) doesn't exist, or it's empty.
+Valid content example (yaml format):
+# use: '<regex to replace>': '<str to replace to>'
+' ' : '.'
+'\[': '.'
+'\]': '.'
+'\.$': ''
+'^\.': ''
+'\.+': '.'
+""", file=sys.stderr)
+    sys.exit(1)
+
+try:
+    trc = Client(host=tr_host, port=tr_port)
+except:
+    print(f'Transmission connection error: {tr_host}:{tr_port}',file=sys.stderr)
+    sys.exit(1)
+
+try:
+    tid=int(sys.argv[1])
+except:
+    print("Missing argumet: <torrent ID number>", file=sys.stderr)
+    sys.exit(1)
+
+print("----------- Torrent -------------")
+print(trc.get_torrent(tid))
+print("---------------------------------")
+
+anything_was_renamed = False
+dir_renamed = True
+while dir_renamed:
+    dir_renamed = False
+    for f in trc.get_torrent(tid).files():
+        n = len(f.name.split('/'))
+        i = 0
+        fname = ''
+        for partialname in f.name.split('/'):
+            i += 1
+            fname = os.path.join(fname, partialname)
+            basename, new_basename = tr_file_rename(tid, fname, tr_rename_rules)
+            if basename != new_basename:
+                if not anything_was_renamed:
+                    print('Renaming:')
+                    anything_was_renamed = True
+                print(f'{basename} --> {new_basename}')
+                if n != i:
+                    # n == i --> this is the last part, so it's the filename
+                    # n != i --> it's a prefix, so we renamed a directory, new get_torrent() call required
+                    dir_renamed = True
+                    break
+        if dir_renamed:
+            break
+
+if not anything_was_renamed:
+    print('No rename needed')
+
