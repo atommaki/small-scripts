@@ -24,7 +24,7 @@ def tr_file_rename(tid, fname, tr_rename_rules):
 
 ### main
 
-tr_rename_rules_f = os.path.join(os.path.expanduser('~'), '.config', 'tr-rename.rules.yml')
+tr_rename_rules_f = os.path.join(os.path.expanduser('~'), '.config', 'transmission-rename.rules.yml')
 
 try:
     with open(tr_rename_rules_f, 'r') as f:
