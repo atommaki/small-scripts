@@ -60,11 +60,13 @@ print("----------- Torrent -------------")
 print(trc.get_torrent(tid))
 print("---------------------------------")
 
+any_files = False
 anything_was_renamed = False
 dir_renamed = True
 while dir_renamed:
     dir_renamed = False
     for f in trc.get_torrent(tid).files():
+        any_files = True
         n = len(f.name.split('/'))
         i = 0
         fname = ''
@@ -85,6 +87,8 @@ while dir_renamed:
         if dir_renamed:
             break
 
-if not anything_was_renamed:
+if not any_files:
+    print('Empty file list (yet?)')
+elif not anything_was_renamed:
     print('No rename needed')
 
