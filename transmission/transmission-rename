@@ -65,7 +65,7 @@ anything_was_renamed = False
 dir_renamed = True
 while dir_renamed:
     dir_renamed = False
-    for f in trc.get_torrent(tid).files():
+    for f in trc.get_torrent(tid).get_files():
         any_files = True
         n = len(f.name.split('/'))
         i = 0
